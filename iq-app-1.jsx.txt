@@ -1,0 +1,320 @@
+import { useState } from "react";
+
+const questions = [
+  {
+    id: 1, category: "Numerical",
+    q: "What comes next in the sequence? 2, 4, 8, 16, ___",
+    options: ["24", "32", "28", "30"], answer: "32"
+  },
+  {
+    id: 2, category: "Logical",
+    q: "All roses are flowers. Some flowers fade quickly. Therefore:",
+    options: [
+      "All roses fade quickly",
+      "Some roses may fade quickly",
+      "No roses fade quickly",
+      "Roses never fade"
+    ], answer: "Some roses may fade quickly"
+  },
+  {
+    id: 3, category: "Numerical",
+    q: "Complete the Fibonacci-like series: 1, 1, 2, 3, 5, 8, ___",
+    options: ["11", "12", "13", "14"], answer: "13"
+  },
+  {
+    id: 4, category: "Verbal",
+    q: "Which word is the odd one out?",
+    options: ["Telescope", "Microscope", "Periscope", "Horoscope"], answer: "Horoscope"
+  },
+  {
+    id: 5, category: "Spatial",
+    q: "A clock shows 3:15. What is the angle between the hour and minute hands?",
+    options: ["0°", "7.5°", "15°", "22.5°"], answer: "7.5°"
+  },
+  {
+    id: 6, category: "Numerical",
+    q: "If 15% of a number is 45, what is 30% of that number?",
+    options: ["60", "75", "90", "120"], answer: "90"
+  },
+  {
+    id: 7, category: "Pattern",
+    q: "Which number replaces the '?': 3, 9, 27, 81, ___",
+    options: ["162", "243", "324", "180"], answer: "243"
+  },
+  {
+    id: 8, category: "Verbal",
+    q: "POTS can be rearranged to spell which of these?",
+    options: ["TOPS", "POSE", "PORT", "POEM"], answer: "TOPS"
+  },
+  {
+    id: 9, category: "Logical",
+    q: "If all doctors are humans, and some humans are tall, which must be true?",
+    options: [
+      "All doctors are tall",
+      "Some doctors may be tall",
+      "No doctors are tall",
+      "All tall people are doctors"
+    ], answer: "Some doctors may be tall"
+  },
+  {
+    id: 10, category: "Numerical",
+    q: "A train travels 120 km in 1.5 hours. What is its speed in km/h?",
+    options: ["70", "75", "80", "85"], answer: "80"
+  }
+];
+
+function getIQ(score) {
+  if (score <= 2) return { iq: "70–84", label: "Below Average", color: "#ef4444", bar: 20 };
+  if (score <= 4) return { iq: "85–99", label: "Average", color: "#f59e0b", bar: 40 };
+  if (score <= 6) return { iq: "100–114", label: "Above Average", color: "#22d3ee", bar: 60 };
+  if (score <= 8) return { iq: "115–129", label: "Superior", color: "#a78bfa", bar: 80 };
+  return { iq: "130+", label: "Very Superior", color: "#34d399", bar: 100 };
+}
+
+export default function IQApp() {
+  const [screen, setScreen] = useState("home"); // home | test | result | leaderboard
+  const [name, setName] = useState("");
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [selected, setSelected] = useState(null);
+  const [records, setRecords] = useState([]);
+  const [currentRecord, setCurrentRecord] = useState(null);
+
+  const startTest = () => {
+    if (!name.trim()) return;
+    setCurrent(0);
+    setAnswers({});
+    setSelected(null);
+    setScreen("test");
+  };
+
+  const handleSelect = (opt) => setSelected(opt);
+
+  const handleNext = () => {
+    const newAnswers = { ...answers, [current]: selected };
+    if (current < questions.length - 1) {
+      setAnswers(newAnswers);
+      setCurrent(current + 1);
+      setSelected(null);
+    } else {
+      const score = Object.entries(newAnswers).filter(
+        ([i, a]) => a === questions[i].answer
+      ).length;
+      const result = { name: name.trim(), score, ...getIQ(score), date: new Date().toLocaleDateString() };
+      setCurrentRecord(result);
+      setRecords(prev => [...prev, result]);
+      setScreen("result");
+    }
+  };
+
+  const progress = ((current + 1) / questions.length) * 100;
+
+  const styles = {
+    app: {
+      minHeight: "100vh",
+      background: "#0a0f1e",
+      fontFamily: "'Georgia', serif",
+      color: "#e2e8f0",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+    },
+    card: {
+      background: "linear-gradient(135deg, #111827 0%, #1a2035 100%)",
+      border: "1px solid #1e3a5f",
+      borderRadius: "16px",
+      padding: "40px",
+      maxWidth: "560px",
+      width: "100%",
+      boxShadow: "0 0 60px rgba(34,211,238,0.05), 0 20px 60px rgba(0,0,0,0.5)",
+    },
+    title: {
+      fontSize: "2.2rem",
+      fontWeight: "bold",
+      letterSpacing: "0.05em",
+      background: "linear-gradient(90deg, #22d3ee, #a78bfa)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      textAlign: "center",
+      marginBottom: "6px",
+    },
+    sub: { textAlign: "center", color: "#64748b", fontSize: "0.9rem", marginBottom: "32px" },
+    label: { display: "block", marginBottom: "8px", color: "#94a3b8", fontSize: "0.85rem", letterSpacing: "0.1em", textTransform: "uppercase" },
+    input: {
+      width: "100%", padding: "12px 16px", borderRadius: "8px",
+      background: "#0f172a", border: "1px solid #1e3a5f", color: "#e2e8f0",
+      fontSize: "1rem", outline: "none", boxSizing: "border-box", marginBottom: "20px",
+    },
+    btn: (col = "#22d3ee") => ({
+      width: "100%", padding: "14px", borderRadius: "8px",
+      background: `linear-gradient(135deg, ${col}22, ${col}44)`,
+      border: `1px solid ${col}66`, color: col,
+      fontSize: "1rem", fontWeight: "bold", cursor: "pointer",
+      letterSpacing: "0.08em", textTransform: "uppercase", transition: "all 0.2s",
+    }),
+    optBtn: (isSelected) => ({
+      width: "100%", padding: "13px 16px", borderRadius: "8px", textAlign: "left",
+      background: isSelected ? "rgba(34,211,238,0.15)" : "rgba(15,23,42,0.8)",
+      border: isSelected ? "1px solid #22d3ee" : "1px solid #1e3a5f",
+      color: isSelected ? "#22d3ee" : "#cbd5e1",
+      fontSize: "0.95rem", cursor: "pointer", marginBottom: "10px", transition: "all 0.15s",
+    }),
+    progressBar: { background: "#1e293b", borderRadius: "4px", height: "6px", marginBottom: "24px", overflow: "hidden" },
+    progressFill: { height: "100%", borderRadius: "4px", background: "linear-gradient(90deg,#22d3ee,#a78bfa)", width: `${progress}%`, transition: "width 0.4s ease" },
+    badge: (col) => ({
+      display: "inline-block", padding: "4px 12px", borderRadius: "20px",
+      background: `${col}22`, border: `1px solid ${col}44`, color: col,
+      fontSize: "0.75rem", fontWeight: "bold", letterSpacing: "0.1em", textTransform: "uppercase",
+    }),
+    iqDisplay: (col) => ({
+      fontSize: "3.5rem", fontWeight: "bold", textAlign: "center",
+      color: col, fontFamily: "'Courier New', monospace", letterSpacing: "0.05em",
+    }),
+    row: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" },
+    tableHead: { display: "grid", gridTemplateColumns: "1fr 80px 80px 80px", gap: "8px", padding: "8px 12px", color: "#64748b", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" },
+    tableRow: (col) => ({ display: "grid", gridTemplateColumns: "1fr 80px 80px 80px", gap: "8px", padding: "10px 12px", background: "#0f172a", borderRadius: "8px", marginBottom: "6px", borderLeft: `3px solid ${col}`, alignItems: "center" }),
+  };
+
+  if (screen === "home") return (
+    <div style={styles.app}>
+      <div style={styles.card}>
+        <div style={{ textAlign: "center", marginBottom: "8px", fontSize: "2rem" }}>🧠</div>
+        <div style={styles.title}>IQ Assessment</div>
+        <div style={styles.sub}>10 cognitive questions · Instant results · Multi-individual tracking</div>
+        <label style={styles.label}>Your Full Name</label>
+        <input
+          style={styles.input}
+          placeholder="e.g. John Doe"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && startTest()}
+        />
+        <button style={styles.btn()} onClick={startTest}>Begin Assessment →</button>
+        {records.length > 0 && (
+          <button style={{ ...styles.btn("#a78bfa"), marginTop: "12px" }} onClick={() => setScreen("leaderboard")}>
+            View All Results ({records.length})
+          </button>
+        )}
+        <div style={{ marginTop: "24px", padding: "16px", background: "#0f172a", borderRadius: "8px", fontSize: "0.8rem", color: "#64748b", lineHeight: "1.6" }}>
+          <strong style={{ color: "#475569" }}>Note:</strong> This is a brief cognitive screening tool and not a certified clinical IQ test. Results are indicative only.
+        </div>
+      </div>
+    </div>
+  );
+
+  if (screen === "test") {
+    const q = questions[current];
+    return (
+      <div style={styles.app}>
+        <div style={styles.card}>
+          <div style={styles.row}>
+            <span style={styles.badge("#22d3ee")}>{q.category}</span>
+            <span style={{ color: "#64748b", fontSize: "0.85rem", fontFamily: "'Courier New', monospace" }}>
+              {current + 1} / {questions.length}
+            </span>
+          </div>
+          <div style={styles.progressBar}><div style={styles.progressFill} /></div>
+          <div style={{ fontSize: "1.05rem", lineHeight: "1.6", marginBottom: "24px", color: "#e2e8f0", fontWeight: "500" }}>
+            {q.q}
+          </div>
+          {q.options.map(opt => (
+            <button key={opt} style={styles.optBtn(selected === opt)} onClick={() => handleSelect(opt)}>
+              {opt}
+            </button>
+          ))}
+          <button
+            style={{ ...styles.btn(selected ? "#22d3ee" : "#334155"), marginTop: "8px", opacity: selected ? 1 : 0.5, cursor: selected ? "pointer" : "not-allowed" }}
+            onClick={selected ? handleNext : undefined}
+          >
+            {current === questions.length - 1 ? "Submit →" : "Next →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === "result" && currentRecord) {
+    const r = currentRecord;
+    const barWidth = (r.bar) + "%";
+    return (
+      <div style={styles.app}>
+        <div style={styles.card}>
+          <div style={{ textAlign: "center", marginBottom: "8px", fontSize: "1.8rem" }}>🎯</div>
+          <div style={{ ...styles.title, fontSize: "1.5rem" }}>Assessment Complete</div>
+          <div style={{ textAlign: "center", marginBottom: "24px", color: "#64748b" }}>{r.name}</div>
+
+          <div style={styles.iqDisplay(r.color)}>IQ {r.iq}</div>
+          <div style={{ textAlign: "center", margin: "8px 0 20px", color: r.color, fontWeight: "bold", letterSpacing: "0.1em", textTransform: "uppercase", fontSize: "0.9rem" }}>
+            {r.label}
+          </div>
+
+          <div style={styles.progressBar}>
+            <div style={{ height: "100%", borderRadius: "4px", background: `linear-gradient(90deg, ${r.color}88, ${r.color})`, width: barWidth, transition: "width 1s ease" }} />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", margin: "20px 0" }}>
+            {[
+              { label: "Score", value: `${r.score} / ${questions.length}` },
+              { label: "Accuracy", value: `${Math.round((r.score / questions.length) * 100)}%` },
+              { label: "Date", value: r.date },
+              { label: "Category", value: r.label },
+            ].map(item => (
+              <div key={item.label} style={{ background: "#0f172a", padding: "14px", borderRadius: "8px", border: "1px solid #1e3a5f" }}>
+                <div style={{ color: "#64748b", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>{item.label}</div>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: "1.05rem", color: "#e2e8f0" }}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <button style={styles.btn()} onClick={() => { setName(""); setScreen("home"); }}>
+            Test Another Individual
+          </button>
+          {records.length > 1 && (
+            <button style={{ ...styles.btn("#a78bfa"), marginTop: "10px" }} onClick={() => setScreen("leaderboard")}>
+              View All {records.length} Results
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === "leaderboard") {
+    const sorted = [...records].sort((a, b) => b.score - a.score);
+    return (
+      <div style={styles.app}>
+        <div style={styles.card}>
+          <div style={{ ...styles.title, fontSize: "1.5rem", marginBottom: "4px" }}>Results Board</div>
+          <div style={styles.sub}>{records.length} individual{records.length !== 1 ? "s" : ""} assessed</div>
+
+          <div style={styles.tableHead}>
+            <span>Name</span><span style={{ textAlign: "center" }}>Score</span><span style={{ textAlign: "center" }}>IQ Range</span><span style={{ textAlign: "center" }}>Level</span>
+          </div>
+          {sorted.map((r, i) => (
+            <div key={i} style={styles.tableRow(r.color)}>
+              <span style={{ fontWeight: "bold", color: "#e2e8f0" }}>
+                {i === 0 && "🥇 "}{i === 1 && "🥈 "}{i === 2 && "🥉 "}{r.name}
+              </span>
+              <span style={{ textAlign: "center", fontFamily: "'Courier New', monospace", color: r.color }}>{r.score}/{questions.length}</span>
+              <span style={{ textAlign: "center", fontFamily: "'Courier New', monospace", fontSize: "0.8rem", color: r.color }}>{r.iq}</span>
+              <span style={{ textAlign: "center" }}><span style={styles.badge(r.color)}>{r.label.split(" ")[0]}</span></span>
+            </div>
+          ))}
+
+          <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+            <button style={{ ...styles.btn(), flex: 1 }} onClick={() => { setName(""); setScreen("home"); }}>
+              + New Test
+            </button>
+            <button style={{ ...styles.btn("#64748b"), flex: 1 }} onClick={() => setScreen(currentRecord ? "result" : "home")}>
+              ← Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
